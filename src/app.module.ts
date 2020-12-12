@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common'
+import { MulterModule } from '@nestjs/platform-express'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
 import { AdminModule } from './admin/admin.module'
@@ -21,6 +22,9 @@ import { UserModule } from './user/user.module'
             database: 'postgres',
             entities: ['src/**/*.entity.ts'],
             synchronize: true
+        }),
+        MulterModule.register({
+            dest: '/upload'
         }),
         UserModule,
         AuthenticationModule,

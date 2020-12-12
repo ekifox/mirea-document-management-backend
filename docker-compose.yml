@@ -1,0 +1,68 @@
+version: '3.0'
+services:
+    # e2e-test:
+    #     image: node:14-alpine
+    #     environment:
+    #         - POSTGRES_HOST=postgres
+    #         - POSTGRES_DB=postgres
+    #         - POSTGRES_USER=postgres
+    #         - POSTGRES_PASSWORD=postgres
+    #     volumes:
+    #         - .:/usr/src/app
+    #     working_dir: /usr/src/app
+    #     command: npm run test:e2e:in-container
+    #     networks:
+    #         - document-management
+    #     depends_on:
+    #         - elastic-search
+    #         - postgres
+
+    elasticsearch:
+        build:
+            context: .
+            dockerfile: elastic-ingest.Dockerfile
+        restart: always
+        environment:
+            - discovery.type=single-node
+            - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+        volumes:
+            - data-elastic:/usr/share/elasticsearch/data
+        ports:
+            - 9200:9200
+        networks:
+            - document-management
+
+    kibana:
+        image: docker.elastic.co/kibana/kibana:7.10.1
+        environment:
+            ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+        ports:
+            - 5601:5601
+        networks:
+            - document-management
+        depends_on:
+            - elasticsearch
+
+    postgres:
+        image: postgres:alpine
+        restart: always
+        environment:
+            - POSTGRES_DB=postgres
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+        volumes:
+            - data-postgres:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
+        networks:
+            - document-management
+
+volumes:
+    data-elastic:
+        driver: local
+    data-postgres:
+        driver: local
+
+networks:
+    document-management:
+        driver: bridge
