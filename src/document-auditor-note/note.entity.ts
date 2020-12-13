@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm'
+import { DocumentAuditorEntity } from '../document-auditor/auditor.entity'
 
 @Entity({
     orderBy: {
@@ -10,7 +11,7 @@ export class DocumentAuditorNoteEntity {
     id: number
 
     @Column('integer')
-    documentId: number
+    documentAuditorId: number
 
     @Column('integer')
     userId: number
@@ -20,4 +21,10 @@ export class DocumentAuditorNoteEntity {
 
     @CreateDateColumn()
     createdAt: Date
+
+    @ManyToOne(
+        () => DocumentAuditorEntity,
+        documentAuditor => documentAuditor.notes
+    )
+    documentAuditor: DocumentAuditorEntity
 }

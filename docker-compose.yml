@@ -57,10 +57,26 @@ services:
         networks:
             - document-management
 
+    minio:
+        image: minio/minio:latest
+        restart: always
+        environment:
+            - MINIO_ACCESS_KEY=filestorage
+            - MINIO_SECRET_KEY=filestorage
+        command: server /data
+        volumes:
+            - data-minio:/data
+        ports:
+            - 9000:9000
+        networks:
+            - document-management
+
 volumes:
     data-elastic:
         driver: local
     data-postgres:
+        driver: local
+    data-minio:
         driver: local
 
 networks:

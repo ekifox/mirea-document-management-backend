@@ -37,6 +37,9 @@ export class UserEntity {
     @Column('enum', { enum: EUserRole, default: EUserRole.USER })
     role: EUserRole
 
+    @Column('boolean', { default: false })
+    verified: Boolean
+
     @CreateDateColumn()
     createdAt: Date
 

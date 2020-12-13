@@ -15,7 +15,9 @@ export class AuthenticationMiddleware implements NestMiddleware {
         if (request.session && request.session.userId) {
             try {
                 request.user = await this.userRepository.findOneOrFail(request.session.userId)
-            } catch (e) {}
+            } catch (e) {
+                console.log(e)
+            }
         }
 
         return next()

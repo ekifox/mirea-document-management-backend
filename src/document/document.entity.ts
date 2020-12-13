@@ -4,17 +4,14 @@ import { EDocumentStatus } from './enum/status.enum'
 
 @Entity()
 export class DocumentEntity {
-    @PrimaryGeneratedColumn()
-    id: number
+    @PrimaryGeneratedColumn('uuid')
+    id: string
 
-    @Column()
-    elasticId: number
+    @Column('character varying')
+    title: string
 
-    @Column()
-    name: string
-
-    @Column()
-    hash: string
+    @Column('integer')
+    userId: number
 
     @Column('enum', {
         enum: EDocumentStatus,
@@ -23,14 +20,14 @@ export class DocumentEntity {
     status: string
 
     @Column('boolean', {
-        default: false,
+        default: 'false',
         comment: 'Не может быть принят, пока все auditors не согласятся'
     })
     isAgreed: boolean
 
     @OneToMany(
         () => DocumentAuditorEntity,
-        () => null
+        auditors => auditors.document
     )
     auditors: DocumentAuditorEntity[]
 }

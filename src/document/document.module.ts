@@ -8,10 +8,19 @@ import { DocumentAuditorNoteEntity } from '../document-auditor-note/note.entity'
 import { DocumentEntity } from './document.entity'
 import { DocumentAuditorEntity } from '../document-auditor/auditor.entity'
 import { DocumentRepository } from './document.repository'
+import { DocumentAuditorRepository } from '../document-auditor/auditor.repository'
+import { UserModule } from '../user/user.module'
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([DocumentEntity, DocumentRepository, DocumentAuditorEntity, DocumentAuditorNoteEntity])
+        TypeOrmModule.forFeature([
+            DocumentEntity,
+            DocumentRepository,
+            DocumentAuditorEntity,
+            DocumentAuditorRepository,
+            DocumentAuditorNoteEntity
+        ]),
+        UserModule
     ],
     controllers: [DocumentController, DocumentAuditorController],
     providers: [DocumentService, DocumentAuditorService],
