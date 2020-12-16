@@ -1,13 +1,16 @@
-import { ValidationPipe } from '@nestjs/common'
-import { NestFactory } from '@nestjs/core'
+import * as ExpressSession from 'express-session'
+import * as FileStoreBase from 'session-file-store'
 import {
     initializeTransactionalContext,
     patchTypeORMRepositoryWithBaseRepository
 } from 'typeorm-transactional-cls-hooked'
+
+import { ValidationPipe } from '@nestjs/common'
+import { NestFactory } from '@nestjs/core'
+
 import { AppModule } from './app.module'
-import * as ExpressSession from 'express-session'
 import { UserEntity } from './user/user.entity'
-import * as FileStoreBase from 'session-file-store'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
 const FileStore = FileStoreBase(ExpressSession)
 
@@ -22,9 +25,28 @@ async function bootstrap() {
             saveUninitialized: false,
             store: new FileStore({
                 path: './sessions'
-            })
+            }),
+            cookie: {
+                path: '/',
+                httpOnly: false,
+                secure: false,
+                maxAge: 24 * 60 * 60 * 1000,
+                sameSite: false
+            }
         })
     )
+    app.enableCors({
+        credentials: true,
+        origin: true
+    })
+
+    const options = new DocumentBuilder()
+        .setTitle('DocumentManagement')
+        .setDescription('The API description')
+        .setVersion('1.0')
+        .build()
+    const document = SwaggerModule.createDocument(app, options)
+    SwaggerModule.setup('docs', app, document)
 
     await app.listen(3000)
 }

@@ -1,21 +1,16 @@
-import {
-    BadRequestException,
-    ForbiddenException,
-    HttpException,
-    Injectable,
-    UnauthorizedException
-} from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import * as Minio from 'minio'
-import { Not, Transaction } from 'typeorm'
+import axios from 'axios'
+import { Not } from 'typeorm'
 import { Transactional } from 'typeorm-transactional-cls-hooked'
 import { DocumentAuditorRepository } from '../document-auditor/auditor.repository'
-import { EUserRole } from '../user/enum/role.enum'
 import { UserEntity } from '../user/user.entity'
 import { UserRepository } from '../user/user.repository'
 import { DocumentRepository } from './document.repository'
 import { EDocumentStatus } from './enum/status.enum'
-import { DocumentCreateInput } from './input/create.input'
+import { IElasticSearchResponse } from './interface/elastic-search.interface'
+import { DocumentSearchItemResponse } from './response/search.response'
 
 @Injectable()
 export class DocumentService {
@@ -73,7 +68,34 @@ export class DocumentService {
         return document
     }
 
-    async upload(user: UserEntity, documentUuid: string, buffer: Buffer) {
+    async search(text: string) {
+        const {
+            hits: { hits }
+        } = await this.elasticSearch(text)
+
+        const documentIds = hits.map(x => x._id)
+        const documents = await this.documentRepository.findByIds(documentIds, {
+            relations: ['user']
+        })
+
+        console.log(documentIds, documents)
+
+        const response: DocumentSearchItemResponse[] = []
+
+        for (const document of documents) {
+            const elasticElement = hits.find(x => x._id === document.id)
+
+            response.push({
+                id: document.id,
+                score: elasticElement._score,
+                document
+            })
+        }
+
+        return response
+    }
+
+    async minioUpload(user: UserEntity, documentUuid: string, buffer: Buffer) {
         await this.documentRepository.findOneOrFail({
             id: documentUuid,
             userId: user.id,
@@ -83,7 +105,34 @@ export class DocumentService {
         await this.s3Client.putObject('documents', documentUuid, buffer, { 'Content-Type': 'application/pdf' })
     }
 
-    async getTemporaryLink(documentUuid: string) {
+    async minioTemporaryLink(documentUuid: string) {
         return await this.s3Client.presignedGetObject('documents', documentUuid, 1 * 60)
+    }
+
+    async elasticSearch(text: string) {
+        const { data } = await axios.post<IElasticSearchResponse>('http://localhost:9200/documents/_search', {
+            query: {
+                match: {
+                    'attachment.content': {
+                        query: text
+                    }
+                }
+            }
+        })
+
+        return data
+    }
+
+    async elasticUpload(documentUuid: string) {
+        const link = await this.minioTemporaryLink(documentUuid)
+
+        const { data } = await axios.get(link, { responseType: 'arraybuffer' })
+
+        const base64 = Buffer.from(data, 'binary').toString('base64')
+
+        await axios.put(`http://localhost:9200/documents/_doc/${documentUuid}?pipeline=attachment`, {
+            filename: documentUuid + '.pdf',
+            data: base64
+        })
     }
 }

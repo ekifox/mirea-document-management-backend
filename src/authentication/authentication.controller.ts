@@ -4,8 +4,8 @@ import { Body, Controller, HttpException, HttpStatus, Inject, Post, Req } from '
 import { ApiBody, ApiOperation } from '@nestjs/swagger'
 
 import { AuthenticationService } from './authentication.service'
-import { AuthenticationLoginInputDto } from './dto/login.dto'
-import { AuthenticationRegisterInputDto } from './dto/register.dto'
+import { AuthenticationLoginInput } from './input/login.input'
+import { AuthenticationRegisterInput } from './input/register.input'
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -14,8 +14,8 @@ export class AuthenticationController {
 
     @Post('register')
     @ApiOperation({ summary: 'Регистрация пользователя' })
-    @ApiBody({ type: AuthenticationRegisterInputDto })
-    async register(@Body() registerInput: AuthenticationRegisterInputDto, @Req() request: Request) {
+    @ApiBody({ type: AuthenticationRegisterInput })
+    async register(@Body() registerInput: AuthenticationRegisterInput, @Req() request: Request) {
         if (request.session.userId) {
             throw new HttpException('AUTH.ALREADY_AUTHED', HttpStatus.CONFLICT)
         }
@@ -34,8 +34,8 @@ export class AuthenticationController {
 
     @Post('login')
     @ApiOperation({ summary: 'Авторизация пользователя' })
-    @ApiBody({ type: AuthenticationLoginInputDto })
-    async login(@Body() loginInput: AuthenticationLoginInputDto, @Req() request: Request) {
+    @ApiBody({ type: AuthenticationLoginInput })
+    async login(@Body() loginInput: AuthenticationLoginInput, @Req() request: Request) {
         if (request.session.userId) {
             throw new HttpException('AUTH.ALREADY_AUTHED', HttpStatus.CONFLICT)
         }

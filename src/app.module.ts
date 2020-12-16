@@ -1,7 +1,6 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common'
 import { MulterModule } from '@nestjs/platform-express'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { S3Module } from '@ntegral/nestjs-s3'
 
 import { AdminModule } from './admin/admin.module'
 import { AppController } from './app.controller'
@@ -26,10 +25,6 @@ import { UserModule } from './user/user.module'
         }),
         MulterModule.register({
             dest: '/upload'
-        }),
-        S3Module.forRoot({
-            accessKeyId: 'filestorage',
-            secretAccessKey: 'filestorage'
         }),
         UserModule,
         AuthenticationModule,

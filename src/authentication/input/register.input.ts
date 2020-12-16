@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsString, IsBoolean, IsNotEmpty, Length } from 'class-validator'
-import { AuthenticationLoginInputDto } from './login.dto'
+import { AuthenticationLoginInput } from './login.input'
 
-export class AuthenticationRegisterInputDto extends AuthenticationLoginInputDto {
+export class AuthenticationRegisterInput extends AuthenticationLoginInput {
     @ApiProperty({
         type: String,
         description: 'Повторный пароль для подтверждения правильности ввода',
