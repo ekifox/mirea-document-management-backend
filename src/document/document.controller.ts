@@ -70,7 +70,7 @@ export class DocumentController {
     @ApiOperation({ summary: 'Сгенерировать URL для просмотра документа' })
     async link(@User() user: UserEntity, @Body('uuid') uuid: string) {
         return {
-            url: await this.service.minioTemporaryLink(uuid)
+            url: await this.service.link(user, uuid)
         }
     }
 
@@ -104,7 +104,7 @@ export class DocumentController {
             throw new HttpException('You cant upload a file other than pdf format', HttpStatus.BAD_REQUEST)
         }
 
-        await this.service.minioUpload(user, uuid, file.buffer)
+        await this.service.upload(user, uuid, file.buffer)
 
         return true
     }
@@ -113,7 +113,7 @@ export class DocumentController {
     @UseGuards(AuthenticationGuard)
     @ApiOperation({ summary: 'Опубликовать документ в поиске' })
     async publish(@User() user: UserEntity, @Body('uuid') uuid: string) {
-        await this.service.elasticUpload(uuid)
+        await this.service.publish(user, uuid)
     }
 
     @Post('search')

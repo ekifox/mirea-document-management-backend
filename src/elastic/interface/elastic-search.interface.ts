@@ -30,6 +30,7 @@ export interface IElasticSearchResponseHit {
     _id: string
     _score: number
     _source: IElasticSearchResponseSource
+    highlight: IElasticSearchResponseHighlight
 }
 
 export interface IElasticSearchResponseHits {
@@ -43,4 +44,8 @@ export interface IElasticSearchResponse {
     timed_out: boolean
     _shards: IElasticSearchResponseShards
     hits: IElasticSearchResponseHits
+}
+
+export interface IElasticSearchResponseHighlight {
+    'attachment.content': string[]
 }

@@ -10,6 +10,8 @@ import { AuthenticationModule } from './authentication/authentication.module'
 import { DepartmentModule } from './department/department.module'
 import { DocumentModule } from './document/document.module'
 import { UserModule } from './user/user.module'
+import { ElasticModule } from './elastic/elastic.module';
+import { MinioModule } from './minio/minio.module';
 
 @Module({
     imports: [
@@ -30,7 +32,9 @@ import { UserModule } from './user/user.module'
         AuthenticationModule,
         AdminModule,
         DepartmentModule,
-        DocumentModule
+        DocumentModule,
+        ElasticModule,
+        MinioModule
     ],
     controllers: [AppController],
     providers: [AppService]

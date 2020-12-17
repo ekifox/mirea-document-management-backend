@@ -10,6 +10,8 @@ import { DocumentAuditorEntity } from '../document-auditor/auditor.entity'
 import { DocumentRepository } from './document.repository'
 import { DocumentAuditorRepository } from '../document-auditor/auditor.repository'
 import { UserModule } from '../user/user.module'
+import { ElasticModule } from '../elastic/elastic.module'
+import { MinioModule } from '../minio/minio.module'
 
 @Module({
     imports: [
@@ -20,7 +22,9 @@ import { UserModule } from '../user/user.module'
             DocumentAuditorRepository,
             DocumentAuditorNoteEntity
         ]),
-        UserModule
+        UserModule,
+        ElasticModule,
+        MinioModule
     ],
     controllers: [DocumentController, DocumentAuditorController],
     providers: [DocumentService, DocumentAuditorService],

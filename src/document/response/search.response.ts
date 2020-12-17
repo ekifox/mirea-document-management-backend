@@ -10,6 +10,9 @@ export class DocumentSearchItemResponse {
     @ApiProperty()
     score: number
 
+    @ApiProperty()
+    highlight: string[]
+
     @ApiProperty({ type: () => DocumentEntity })
     document: DocumentEntity
 }

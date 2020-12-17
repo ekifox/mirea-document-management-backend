@@ -1,6 +1,5 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Inject, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import * as Minio from 'minio'
 import axios from 'axios'
 import { Not } from 'typeorm'
 import { Transactional } from 'typeorm-transactional-cls-hooked'
@@ -9,20 +8,14 @@ import { UserEntity } from '../user/user.entity'
 import { UserRepository } from '../user/user.repository'
 import { DocumentRepository } from './document.repository'
 import { EDocumentStatus } from './enum/status.enum'
-import { IElasticSearchResponse } from './interface/elastic-search.interface'
+import { IElasticSearchResponse } from '../elastic/interface/elastic-search.interface'
 import { DocumentSearchItemResponse } from './response/search.response'
+import { MinioService } from '../minio/minio.service'
+import { ElasticService } from '../elastic/elastic.service'
+import { Base64String } from '../elastic/type/Base64String'
 
 @Injectable()
 export class DocumentService {
-    private s3Client = new Minio.Client({
-        endPoint: 'localhost',
-        port: 9000,
-        useSSL: false,
-        accessKey: 'filestorage',
-        secretKey: 'filestorage',
-        region: 'default'
-    })
-
     @InjectRepository(DocumentRepository)
     private readonly documentRepository: DocumentRepository
 
@@ -31,6 +24,12 @@ export class DocumentService {
 
     @InjectRepository(DocumentAuditorRepository)
     private readonly documentAuditorRepository: DocumentAuditorRepository
+
+    @Inject()
+    private readonly minioService: MinioService
+
+    @Inject()
+    private readonly elasticService: ElasticService
 
     @Transactional()
     async create(user: UserEntity, title: string, auditorUserIds: number[]) {
@@ -71,23 +70,25 @@ export class DocumentService {
     async search(text: string) {
         const {
             hits: { hits }
-        } = await this.elasticSearch(text)
+        } = await this.elasticService.search(text)
 
         const documentIds = hits.map(x => x._id)
         const documents = await this.documentRepository.findByIds(documentIds, {
             relations: ['user']
         })
 
-        console.log(documentIds, documents)
-
         const response: DocumentSearchItemResponse[] = []
 
         for (const document of documents) {
             const elasticElement = hits.find(x => x._id === document.id)
+            const highlights = elasticElement.highlight['attachment.content'].map(x =>
+                x.replace(/^[,\s]+|[,\s]+$/g, '').replace(/,[,\s]*,/g, ',')
+            )
 
             response.push({
                 id: document.id,
                 score: elasticElement._score,
+                highlight: highlights,
                 document
             })
         }
@@ -95,44 +96,37 @@ export class DocumentService {
         return response
     }
 
-    async minioUpload(user: UserEntity, documentUuid: string, buffer: Buffer) {
+    public async link(user: UserEntity, documentUuid: string): Promise<string> {
         await this.documentRepository.findOneOrFail({
             id: documentUuid,
             userId: user.id,
             status: Not(EDocumentStatus.PUBLISHED)
         })
 
-        await this.s3Client.putObject('documents', documentUuid, buffer, { 'Content-Type': 'application/pdf' })
+        return await this.minioService.generateTemporaryLink(documentUuid)
     }
 
-    async minioTemporaryLink(documentUuid: string) {
-        return await this.s3Client.presignedGetObject('documents', documentUuid, 1 * 60)
-    }
-
-    async elasticSearch(text: string) {
-        const { data } = await axios.post<IElasticSearchResponse>('http://localhost:9200/documents/_search', {
-            query: {
-                match: {
-                    'attachment.content': {
-                        query: text
-                    }
-                }
-            }
+    public async upload(user: UserEntity, documentUuid: string, buffer: Buffer) {
+        await this.documentRepository.findOneOrFail({
+            id: documentUuid,
+            userId: user.id,
+            status: Not(EDocumentStatus.PUBLISHED)
         })
 
-        return data
+        await this.minioService.upload(documentUuid, buffer)
     }
 
-    async elasticUpload(documentUuid: string) {
-        const link = await this.minioTemporaryLink(documentUuid)
+    async publish(user: UserEntity, documentUuid: string) {
+        await this.documentRepository.findOneOrFail({
+            id: documentUuid,
+            userId: user.id,
+            status: Not(EDocumentStatus.PUBLISHED)
+        })
 
+        const link = await this.minioService.generateTemporaryLink(documentUuid)
         const { data } = await axios.get(link, { responseType: 'arraybuffer' })
+        const base64 = Buffer.from(data, 'binary').toString('base64') as Base64String
 
-        const base64 = Buffer.from(data, 'binary').toString('base64')
-
-        await axios.put(`http://localhost:9200/documents/_doc/${documentUuid}?pipeline=attachment`, {
-            filename: documentUuid + '.pdf',
-            data: base64
-        })
+        await this.elasticService.upload(documentUuid, base64)
     }
 }
