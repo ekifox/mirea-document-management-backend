@@ -69,9 +69,7 @@ export class DocumentController {
     @UseGuards(AuthenticationGuard)
     @ApiOperation({ summary: 'Сгенерировать URL для просмотра документа' })
     async link(@User() user: UserEntity, @Body('uuid') uuid: string) {
-        return {
-            url: await this.service.link(user, uuid)
-        }
+        return await this.service.link(user, uuid)
     }
 
     @Put('upload')

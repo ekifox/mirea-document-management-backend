@@ -17,7 +17,7 @@ export class AuthenticationService {
     @Transactional()
     async register(login: string, password: string, passwordConfirmation: string) {
         if (password !== passwordConfirmation) {
-            throw new HttpException('AUTH.PASSWORD_MISMATCH', HttpStatus.FORBIDDEN)
+            throw new HttpException('Password confirmation mismatch', HttpStatus.FORBIDDEN)
         }
 
         const isAlreadyRegistered = await this.userRepository.findOne({
@@ -28,7 +28,7 @@ export class AuthenticationService {
         })
 
         if (isAlreadyRegistered && isAlreadyRegistered.id) {
-            throw new HttpException('AUTH.ALREADY_EXISTS', HttpStatus.CONFLICT)
+            throw new HttpException('User with the same login already exists', HttpStatus.CONFLICT)
         }
 
         const passwordHash = await this.passwordHash(password)
@@ -52,7 +52,7 @@ export class AuthenticationService {
         })
 
         if (!user) {
-            throw new HttpException('AUTH.NOT_EXIST', HttpStatus.NOT_FOUND)
+            throw new HttpException('User with the provided login is not registered', HttpStatus.NOT_FOUND)
         }
 
         return user

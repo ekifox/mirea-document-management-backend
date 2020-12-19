@@ -82,7 +82,7 @@ export class DocumentService {
         for (const document of documents) {
             const elasticElement = hits.find(x => x._id === document.id)
             const highlights = elasticElement.highlight['attachment.content'].map(x =>
-                x.replace(/^[,\s]+|[,\s]+$/g, '').replace(/,[,\s]*,/g, ',')
+                x.replace(/(\W\s)?(.+)(\W\s)?/iu, '$2')
             )
 
             response.push({

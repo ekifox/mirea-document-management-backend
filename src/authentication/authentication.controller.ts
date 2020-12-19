@@ -17,7 +17,7 @@ export class AuthenticationController {
     @ApiBody({ type: AuthenticationRegisterInput })
     async register(@Body() registerInput: AuthenticationRegisterInput, @Req() request: Request) {
         if (request.session.userId) {
-            throw new HttpException('AUTH.ALREADY_AUTHED', HttpStatus.CONFLICT)
+            throw new HttpException('You are already logged in', HttpStatus.CONFLICT)
         }
 
         const user = await this.authService.register(
@@ -37,7 +37,7 @@ export class AuthenticationController {
     @ApiBody({ type: AuthenticationLoginInput })
     async login(@Body() loginInput: AuthenticationLoginInput, @Req() request: Request) {
         if (request.session.userId) {
-            throw new HttpException('AUTH.ALREADY_AUTHED', HttpStatus.CONFLICT)
+            throw new HttpException('You are already logged in', HttpStatus.CONFLICT)
         }
 
         const user = await this.authService.verify(loginInput.login, loginInput.password)

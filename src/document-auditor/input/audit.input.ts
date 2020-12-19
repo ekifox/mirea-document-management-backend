@@ -1,11 +1,11 @@
-import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator'
+import { IsBoolean, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator'
 
 import { ApiProperty } from '@nestjs/swagger'
 
 export class DocumentAuditorAuditInput {
-    @IsNumber()
-    @ApiProperty({ type: 'integer', description: 'Document ID' })
-    documentId: number
+    @IsUUID()
+    @ApiProperty({ type: 'string', description: 'Document ID' })
+    documentId: string
 
     @IsBoolean()
     @ApiProperty({ type: 'boolean', description: 'Согласен ли аудитор согласовать документ' })
