@@ -1,21 +1,22 @@
-import { Controller, Post, UnauthorizedException, UseGuards } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
+import { Body, Controller, Inject, Post, UseGuards } from '@nestjs/common'
+import { ApiBody, ApiOperation } from '@nestjs/swagger'
 import { AuthenticationGuard } from '../authentication/authentication.guard'
-import { EUserRole } from '../user/enum/role.enum'
 import { User } from '../user/user.decorator'
 import { UserEntity } from '../user/user.entity'
-import { UserRepository } from '../user/user.repository'
+import { AdminService } from './admin.service'
+import { AdminUserVerifyInput } from './input/user-verify.input'
 
 @Controller('admin')
 export class AdminController {
-    @InjectRepository(UserRepository)
-    private readonly userRepository: UserRepository
+    @Inject()
+    private readonly adminService: AdminService
 
-    @Post('confirmUser')
+    @Post('user/verify')
     @UseGuards(AuthenticationGuard)
-    async confirmUser(@User() user: UserEntity) {
-        await this.userRepository.update(user, { verified: true })
-
+    @ApiOperation({ summary: 'Добавить новый документ в систему' })
+    @ApiBody({ type: AdminUserVerifyInput })
+    async userVerify(@User() user: UserEntity, @Body() input: AdminUserVerifyInput) {
+        await this.adminService.userVerify(user, input.userId)
         return true
     }
 }

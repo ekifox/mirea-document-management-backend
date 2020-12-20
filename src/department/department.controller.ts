@@ -1,11 +1,8 @@
-import { Repository } from 'typeorm'
-
 import { Controller, Get } from '@nestjs/common'
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { InjectRepository } from '@nestjs/typeorm'
-
+import { Repository } from 'typeorm'
 import { DepartmentEntity } from './department.entity'
-import { UserEntity } from '../user/user.entity'
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
 @ApiTags('department')
 @Controller('department')
@@ -21,8 +18,7 @@ export class DepartmentController {
     async list(): Promise<DepartmentEntity[]> {
         return await this.departmentRepository
             .createQueryBuilder('department')
-            .innerJoinAndSelect('department.users', 'user')
-            .where('user.verified = TRUE')
+            .leftJoinAndSelect('department.users', 'user', 'user.verified = TRUE')
             .getMany()
     }
 }

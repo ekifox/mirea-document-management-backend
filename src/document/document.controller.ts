@@ -47,17 +47,17 @@ export class DocumentController {
 
     @Get(':uuid')
     @UseGuards(AuthenticationGuard)
-    @ApiOperation({ summary: 'Добавить новый документ в систему' })
+    @ApiOperation({ summary: 'Получить данные о документе' })
     @ApiOkResponse({ type: DocumentEntity })
-    async get(@User() user: UserEntity, @Param('uuid') uuid: string) {
-        return await this.documentRepository.findOneOrFail(uuid, {
-            relations: ['auditors', 'auditors.user', 'auditors.notes']
+    async get(@Param('uuid') uuid: string) {
+        return await this.documentRepository.findOneOrFail({
+            where: { id: uuid },
+            relations: ['auditors', 'auditors.user']
         })
     }
 
     @Put()
     @UseGuards(AuthenticationGuard)
-    @UseInterceptors(FileFieldsInterceptor([{ name: 'document', maxCount: 1 }]))
     @ApiOperation({ summary: 'Добавить новый документ в систему' })
     @ApiBody({ type: DocumentCreateInput })
     @ApiCreatedResponse({ type: DocumentEntity })
@@ -112,6 +112,7 @@ export class DocumentController {
     @ApiOperation({ summary: 'Опубликовать документ в поиске' })
     async publish(@User() user: UserEntity, @Body('uuid') uuid: string) {
         await this.service.publish(user, uuid)
+        return true
     }
 
     @Post('search')

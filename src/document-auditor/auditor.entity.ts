@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from 'typeorm'
-import { DocumentAuditorNoteEntity } from '../document-auditor-note/note.entity'
 import { DocumentEntity } from '../document/document.entity'
 import { UserEntity } from '../user/user.entity'
 import { EDocumentAuditorStatus } from './enum/status.enum'
@@ -30,14 +29,6 @@ export class DocumentAuditorEntity {
     )
     @ApiProperty({ type: () => UserEntity })
     user: UserEntity
-
-    @OneToMany(
-        () => DocumentAuditorNoteEntity,
-        notes => notes.documentAuditor,
-        { onDelete: 'CASCADE' }
-    )
-    @ApiProperty({ type: () => [DocumentAuditorNoteEntity] })
-    notes: DocumentAuditorNoteEntity[]
 
     @ManyToOne(
         () => DocumentEntity,

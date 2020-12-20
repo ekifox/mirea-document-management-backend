@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Inject, Injectable, NotAcceptableException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import axios from 'axios'
 import { Not } from 'typeorm'
@@ -13,6 +13,7 @@ import { DocumentSearchItemResponse } from './response/search.response'
 import { MinioService } from '../minio/minio.service'
 import { ElasticService } from '../elastic/elastic.service'
 import { Base64String } from '../elastic/type/Base64String'
+import { EDocumentAuditorStatus } from '../document-auditor/enum/status.enum'
 
 @Injectable()
 export class DocumentService {
@@ -99,7 +100,7 @@ export class DocumentService {
     public async link(user: UserEntity, documentUuid: string): Promise<string> {
         await this.documentRepository.findOneOrFail({
             id: documentUuid,
-            userId: user.id,
+            // userId: user.id,
             status: Not(EDocumentStatus.PUBLISHED)
         })
 
@@ -116,17 +117,33 @@ export class DocumentService {
         await this.minioService.upload(documentUuid, buffer)
     }
 
+    @Transactional()
     async publish(user: UserEntity, documentUuid: string) {
-        await this.documentRepository.findOneOrFail({
+        const document = await this.documentRepository.findOneOrFail({
             id: documentUuid,
             userId: user.id,
             status: Not(EDocumentStatus.PUBLISHED)
         })
+
+        const documentAuditors = await this.documentAuditorRepository.find({
+            where: {
+                document
+            }
+        })
+
+        const allAccepted = documentAuditors.every(x => x.status === EDocumentAuditorStatus.ACCEPTED)
+
+        if (!allAccepted) {
+            throw new NotAcceptableException('Not all auditors accept the document')
+        }
 
         const link = await this.minioService.generateTemporaryLink(documentUuid)
         const { data } = await axios.get(link, { responseType: 'arraybuffer' })
         const base64 = Buffer.from(data, 'binary').toString('base64') as Base64String
 
         await this.elasticService.upload(documentUuid, base64)
+
+        document.status = EDocumentStatus.PUBLISHED
+        await this.documentRepository.save(document)
     }
 }
