@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common'
+import { ClassSerializerInterceptor, Controller, Get, UseInterceptors } from '@nestjs/common'
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -12,9 +12,8 @@ export class DepartmentController {
 
     @Get()
     @ApiOperation({ summary: 'Получить список всех департаментов и их пользователей' })
-    @ApiOkResponse({
-        type: [DepartmentEntity]
-    })
+    @ApiOkResponse({ type: [DepartmentEntity] })
+    @UseInterceptors(ClassSerializerInterceptor)
     async list(): Promise<DepartmentEntity[]> {
         return await this.departmentRepository
             .createQueryBuilder('department')

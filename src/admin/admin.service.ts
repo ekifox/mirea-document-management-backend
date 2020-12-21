@@ -16,4 +16,14 @@ export class AdminService {
 
         await this.userRepository.update({ id: verifyUserId }, { verified: true })
     }
+
+    public async userList(adminUser: UserEntity) {
+        if (adminUser.role !== EUserRole.ADMIN) {
+            throw new UnauthorizedException()
+        }
+
+        return await this.userRepository.find({
+            relations: ['department']
+        })
+    }
 }

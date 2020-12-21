@@ -60,7 +60,7 @@ export class ElasticService {
         const isBase64Encoded = Buffer.from(base64string, 'base64').toString('base64') === base64string
 
         if (!isBase64Encoded) {
-            throw new Error('Provided non-base64 encoded string')
+            throw new Error('Provided string is not base64-encoded')
         }
 
         return await this.axiosClient.put(`/documents/_doc/${documentUuid}?pipeline=attachment`, {

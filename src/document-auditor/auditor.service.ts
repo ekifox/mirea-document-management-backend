@@ -50,4 +50,14 @@ export class DocumentAuditorService {
         await this.documentRepository.save(document)
         await this.documentAuditorRepository.save(documentAuditor)
     }
+
+    async list(user: UserEntity) {
+        return await this.documentAuditorRepository.find({
+            relations: ['document', 'document.user', 'document.user.department'],
+            where: {
+                user,
+                status: EDocumentAuditorStatus.AWAITING
+            }
+        })
+    }
 }

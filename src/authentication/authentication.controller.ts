@@ -1,6 +1,16 @@
 import { Request } from 'express'
 
-import { Body, Controller, HttpException, HttpStatus, Inject, Post, Req } from '@nestjs/common'
+import {
+    Body,
+    Controller,
+    HttpException,
+    HttpStatus,
+    Inject,
+    Post,
+    Req,
+    UsePipes,
+    ValidationPipe
+} from '@nestjs/common'
 import { ApiBody, ApiOperation } from '@nestjs/swagger'
 
 import { AuthenticationService } from './authentication.service'
@@ -8,6 +18,7 @@ import { AuthenticationLoginInput } from './input/login.input'
 import { AuthenticationRegisterInput } from './input/register.input'
 
 @Controller('authentication')
+@UsePipes(new ValidationPipe())
 export class AuthenticationController {
     @Inject()
     private readonly authService: AuthenticationService

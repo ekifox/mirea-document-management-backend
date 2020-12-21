@@ -8,4 +8,6 @@ export const User = createParamDecorator((data: unknown, context: ExecutionConte
     if (user && user.id) {
         return user
     }
+
+    throw new Error('User decorator called without user in request params')
 })

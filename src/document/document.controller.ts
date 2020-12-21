@@ -1,5 +1,6 @@
 import {
     Body,
+    ClassSerializerInterceptor,
     Controller,
     Get,
     HttpException,
@@ -11,7 +12,9 @@ import {
     Query,
     UploadedFiles,
     UseGuards,
-    UseInterceptors
+    UseInterceptors,
+    UsePipes,
+    ValidationPipe
 } from '@nestjs/common'
 import { FileFieldsInterceptor } from '@nestjs/platform-express'
 import {
@@ -38,6 +41,7 @@ import { DocumentSearchItemResponse } from './response/search.response'
 @Controller('document')
 @ApiCookieAuth()
 @ApiTags('document')
+@UsePipes(new ValidationPipe())
 export class DocumentController {
     @Inject()
     private readonly service: DocumentService
@@ -49,10 +53,11 @@ export class DocumentController {
     @UseGuards(AuthenticationGuard)
     @ApiOperation({ summary: 'Получить данные о документе' })
     @ApiOkResponse({ type: DocumentEntity })
+    @UseInterceptors(ClassSerializerInterceptor)
     async get(@Param('uuid') uuid: string) {
         return await this.documentRepository.findOneOrFail({
             where: { id: uuid },
-            relations: ['auditors', 'auditors.user']
+            relations: ['user', 'auditors', 'auditors.user']
         })
     }
 

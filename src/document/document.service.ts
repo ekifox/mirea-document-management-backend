@@ -42,6 +42,10 @@ export class DocumentService {
             throw new ForbiddenException('Department is not selected')
         }
 
+        if (auditorUserIds.includes(user.id)) {
+            throw new BadRequestException('You cant provide yourself as an auditor')
+        }
+
         const auditors = await this.userRepository.findByIds(auditorUserIds)
 
         if (auditors.length !== auditorUserIds.length) {
@@ -107,14 +111,24 @@ export class DocumentService {
         return await this.minioService.generateTemporaryLink(documentUuid)
     }
 
+    @Transactional()
     public async upload(user: UserEntity, documentUuid: string, buffer: Buffer) {
-        await this.documentRepository.findOneOrFail({
+        const document = await this.documentRepository.findOneOrFail({
             id: documentUuid,
             userId: user.id,
             status: Not(EDocumentStatus.PUBLISHED)
         })
 
+        // Uploading the document to the minio storage
         await this.minioService.upload(documentUuid, buffer)
+
+        // Change the auditors statuses to AWAITING
+        await this.documentAuditorRepository.update({ document }, { status: EDocumentAuditorStatus.AWAITING })
+
+        // Change document status to awaiting the auditors
+        document.status = EDocumentStatus.AUDITOR_AWAITING
+
+        await this.documentRepository.save(document)
     }
 
     @Transactional()
