@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsString, IsBoolean, IsNotEmpty, Length } from 'class-validator'
+import { IsNotEmpty, IsString, Length } from 'class-validator'
 import { AuthenticationLoginInput } from './login.input'
 
 export class AuthenticationRegisterInput extends AuthenticationLoginInput {

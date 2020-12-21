@@ -1,10 +1,8 @@
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
 import * as crypto from 'crypto'
 import { Transactional } from 'typeorm-transactional-cls-hooked'
 import { promisify } from 'util'
-
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-
 import { UserRepository } from '../user/user.repository'
 
 const pbkdf2Async = promisify(crypto.pbkdf2)

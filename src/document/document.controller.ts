@@ -42,6 +42,7 @@ import { DocumentSearchItemResponse } from './response/search.response'
 @ApiCookieAuth()
 @ApiTags('document')
 @UsePipes(new ValidationPipe())
+@UseGuards(AuthenticationGuard)
 export class DocumentController {
     @Inject()
     private readonly service: DocumentService
@@ -49,8 +50,17 @@ export class DocumentController {
     @InjectRepository(DocumentRepository)
     private readonly documentRepository: DocumentRepository
 
+    @Get('mylist')
+    @ApiOperation({ summary: 'Получить данные о документе' })
+    @ApiOkResponse({ type: DocumentEntity })
+    @UseInterceptors(ClassSerializerInterceptor)
+    async getUserList(@User() user: UserEntity) {
+        return await this.documentRepository.find({
+            where: { user }
+        })
+    }
+
     @Get(':uuid')
-    @UseGuards(AuthenticationGuard)
     @ApiOperation({ summary: 'Получить данные о документе' })
     @ApiOkResponse({ type: DocumentEntity })
     @UseInterceptors(ClassSerializerInterceptor)
@@ -62,7 +72,6 @@ export class DocumentController {
     }
 
     @Put()
-    @UseGuards(AuthenticationGuard)
     @ApiOperation({ summary: 'Добавить новый документ в систему' })
     @ApiBody({ type: DocumentCreateInput })
     @ApiCreatedResponse({ type: DocumentEntity })
@@ -71,14 +80,12 @@ export class DocumentController {
     }
 
     @Post('link')
-    @UseGuards(AuthenticationGuard)
     @ApiOperation({ summary: 'Сгенерировать URL для просмотра документа' })
     async link(@User() user: UserEntity, @Body('uuid') uuid: string) {
         return await this.service.link(user, uuid)
     }
 
     @Put('upload')
-    @UseGuards(AuthenticationGuard)
     @UseInterceptors(FileFieldsInterceptor([{ name: 'document', maxCount: 1 }]))
     @ApiOperation({ summary: 'Загрузить документ в систему' })
     @ApiConsumes('multipart/form-data')
@@ -113,7 +120,6 @@ export class DocumentController {
     }
 
     @Post('publish')
-    @UseGuards(AuthenticationGuard)
     @ApiOperation({ summary: 'Опубликовать документ в поиске' })
     async publish(@User() user: UserEntity, @Body('uuid') uuid: string) {
         await this.service.publish(user, uuid)
@@ -121,10 +127,9 @@ export class DocumentController {
     }
 
     @Post('search')
-    @UseGuards(AuthenticationGuard)
-    @ApiOperation({ summary: 'Поиск файла по тексту' })
+    @ApiOperation({ summary: 'Поиск опубликованного файла по тексту' })
     @ApiCreatedResponse({ type: [DocumentSearchItemResponse] })
-    async search(@User() user: UserEntity, @Body('text') text: string) {
+    async search(@Body('text') text: string) {
         return await this.service.search(text)
     }
 }

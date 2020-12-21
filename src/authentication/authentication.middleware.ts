@@ -1,7 +1,7 @@
-import { NextFunction, Request, Response } from 'express'
-import { Repository } from 'typeorm'
 import { Injectable, NestMiddleware } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
+import { NextFunction, Request, Response } from 'express'
+import { Repository } from 'typeorm'
 import { UserEntity } from '../user/user.entity'
 
 @Injectable()

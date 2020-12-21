@@ -10,8 +10,8 @@ import { AuthenticationModule } from './authentication/authentication.module'
 import { DepartmentModule } from './department/department.module'
 import { DocumentModule } from './document/document.module'
 import { UserModule } from './user/user.module'
-import { ElasticModule } from './elastic/elastic.module';
-import { MinioModule } from './minio/minio.module';
+import { ElasticModule } from './elastic/elastic.module'
+import { MinioModule } from './minio/minio.module'
 
 @Module({
     imports: [

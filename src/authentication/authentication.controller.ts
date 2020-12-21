@@ -1,5 +1,3 @@
-import { Request } from 'express'
-
 import {
     Body,
     Controller,
@@ -12,7 +10,7 @@ import {
     ValidationPipe
 } from '@nestjs/common'
 import { ApiBody, ApiOperation } from '@nestjs/swagger'
-
+import { Request } from 'express'
 import { AuthenticationService } from './authentication.service'
 import { AuthenticationLoginInput } from './input/login.input'
 import { AuthenticationRegisterInput } from './input/register.input'

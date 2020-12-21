@@ -25,13 +25,6 @@ export class DocumentEntity {
     @ApiProperty()
     status: string
 
-    @Column('boolean', {
-        default: 'false',
-        comment: 'Не может быть принят, пока все auditors не согласятся'
-    })
-    @ApiProperty()
-    isAgreed: boolean
-
     @OneToMany(
         () => DocumentAuditorEntity,
         auditors => auditors.document
