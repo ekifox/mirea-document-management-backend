@@ -23,7 +23,10 @@ export class AdminService {
         }
 
         return await this.userRepository.find({
-            relations: ['department']
+            relations: ['department'],
+            order: {
+                createdAt: 'DESC'
+            }
         })
     }
 }
